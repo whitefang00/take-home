@@ -5,214 +5,532 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ride Dispatch System</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
         }
+
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
+            padding: 20px;
         }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .grid-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
         .grid-container {
-            display: inline-block;
-            border: 2px solid #333;
-            background-color: white;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
         }
+
         .grid {
             display: grid;
-            grid-template-columns: repeat(100, 4px);
-            grid-template-rows: repeat(100, 4px);
-            gap: 1px;
-            background-color: #ccc;
+            grid-template-columns: repeat(20, 25px);
+            grid-template-rows: repeat(20, 25px);
+            gap: 2px;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 10px;
+            border: 3px solid #ddd;
         }
+
         .cell {
-            width: 4px;
-            height: 4px;
-            background-color: white;
-            border: 1px solid #eee;
+            width: 25px;
+            height: 25px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 3px;
             position: relative;
-        }
-        .driver {
-            background-color: #4CAF50;
-            border-radius: 50%;
-        }
-        .rider {
-            background-color: #2196F3;
-            border-radius: 50%;
-        }
-        .pickup {
-            background-color: #FF9800;
-        }
-        .dropoff {
-            background-color: #9C27B0;
-        }
-        .pending {
-            background-color: #FFC107;
-        }
-        .controls {
-            margin: 20px 0;
-            padding: 20px;
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .control-group {
-            margin: 10px 0;
-        }
-        label {
-            display: inline-block;
-            width: 100px;
-            font-weight: bold;
-        }
-        input {
-            padding: 5px;
-            margin: 0 10px;
-            width: 60px;
-        }
-        button {
-            padding: 8px 16px;
-            margin: 5px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
+            transition: all 0.2s ease;
             cursor: pointer;
         }
+
+        .cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .driver {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border: 2px solid #2E7D32;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .driver::after {
+            content: '🚗';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+        }
+
+        .rider {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            border: 2px solid #1565C0;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .rider::after {
+            content: '👤';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+        }
+
+        .pickup {
+            background: linear-gradient(45deg, #FF9800, #F57C00);
+            border: 2px solid #E65100;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .pickup::after {
+            content: '📍';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+        }
+
+        .dropoff {
+            background: linear-gradient(45deg, #9C27B0, #7B1FA2);
+            border: 2px solid #6A1B9A;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .dropoff::after {
+            content: '🏁';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+        }
+
+        .pending {
+            background: linear-gradient(45deg, #FFC107, #FFA000);
+            border: 2px solid #FF8F00;
+            border-radius: 50%;
+            position: relative;
+            animation: pulse 1.5s infinite;
+        }
+
+        .pending::after {
+            content: '⏳';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .in-transit {
+            background: linear-gradient(45deg, #00BCD4, #0097A7);
+            border: 2px solid #00695C;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .in-transit::after {
+            content: '🚗';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+        }
+
+        .controls-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #007bff;
+        }
+
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #007bff;
+            font-size: 1.1rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+            min-width: 80px;
+        }
+
+        input, select {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
         button:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
         }
+
         button:disabled {
-            background-color: #cccccc;
+            background: #ccc;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
-        .status {
-            margin: 20px 0;
+
+        .status-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .status-item {
+            background: #f8f9fa;
             padding: 15px;
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #28a745;
         }
-        .ride-list {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+
+        .status-item h4 {
+            color: #28a745;
+            margin-bottom: 5px;
         }
-        .ride-item {
-            padding: 10px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 3px;
+
+        .status-item .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
         }
+
         .legend {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
         .legend-item {
-            display: inline-block;
-            margin: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            background: #f8f9fa;
         }
+
         .legend-color {
-            display: inline-block;
             width: 20px;
             height: 20px;
-            margin-right: 5px;
             border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        .ride-list {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .ride-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            transition: all 0.3s ease;
+        }
+
+        .ride-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .ride-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-accepted { background: #d4edda; color: #155724; }
+        .status-completed { background: #cce5ff; color: #004085; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+
+        .coordinates {
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .grid {
+                grid-template-columns: repeat(20, 20px);
+                grid-template-rows: repeat(20, 20px);
+            }
+            
+            .cell {
+                width: 20px;
+                height: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Ride Dispatch System</h1>
-        
+        <div class="header">
+            <h1>🚗 Ride Dispatch System</h1>
+            <p>Real-time simulation of a ride-hailing service</p>
+        </div>
+
+        <div class="main-content">
+            <div class="grid-section">
+                <h2>City Grid (20x20)</h2>
+                <div class="grid-container">
+                    <div class="grid" id="grid"></div>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <div class="control-group">
+                    <h3>➕ Add Driver</h3>
+                    <div class="input-group">
+                        <label>X:</label>
+                        <input type="number" id="driverX" placeholder="X" min="0" max="19" value="10">
+                    </div>
+                    <div class="input-group">
+                        <label>Y:</label>
+                        <input type="number" id="driverY" placeholder="Y" min="0" max="19" value="10">
+                    </div>
+                    <button onclick="addDriver()">Add Driver</button>
+                </div>
+
+                <div class="control-group">
+                    <h3>👤 Add Rider</h3>
+                    <div class="input-group">
+                        <label>Pickup X:</label>
+                        <input type="number" id="pickupX" placeholder="X" min="0" max="19" value="5">
+                    </div>
+                    <div class="input-group">
+                        <label>Pickup Y:</label>
+                        <input type="number" id="pickupY" placeholder="Y" min="0" max="19" value="5">
+                    </div>
+                    <div class="input-group">
+                        <label>Dropoff X:</label>
+                        <input type="number" id="dropoffX" placeholder="X" min="0" max="19" value="15">
+                    </div>
+                    <div class="input-group">
+                        <label>Dropoff Y:</label>
+                        <input type="number" id="dropoffY" placeholder="Y" min="0" max="19" value="15">
+                    </div>
+                    <button onclick="addRider()">Add Rider</button>
+                </div>
+
+                <div class="control-group">
+                    <h3>🚖 Request Ride</h3>
+                    <div class="input-group">
+                        <label>Rider:</label>
+                        <select id="riderSelect">
+                            <option value="">Select a rider...</option>
+                        </select>
+                    </div>
+                    <button onclick="requestRide()">Request Ride</button>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎯 Driver Actions</h3>
+                    <div class="input-group">
+                        <label>Driver:</label>
+                        <select id="driverSelect">
+                            <option value="">Select a driver...</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Ride:</label>
+                        <select id="rideSelect">
+                            <option value="">Select a ride...</option>
+                        </select>
+                    </div>
+                    <button onclick="acceptRide()" style="background: linear-gradient(45deg, #28a745, #20c997);">Accept</button>
+                    <button onclick="rejectRide()" style="background: linear-gradient(45deg, #dc3545, #c82333);">Reject</button>
+                </div>
+
+                <div class="control-group">
+                    <h3>⏰ Time Control</h3>
+                    <button onclick="nextTick()" style="background: linear-gradient(45deg, #6f42c1, #5a2d91);">Next Tick</button>
+                    <button onclick="refreshState()" style="background: linear-gradient(45deg, #fd7e14, #e55a00);">Refresh</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-section">
+            <h2>📊 System Status</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <h4>Current Tick</h4>
+                    <div class="value" id="currentTick">0</div>
+                </div>
+                <div class="status-item">
+                    <h4>Total Drivers</h4>
+                    <div class="value" id="driverCount">0</div>
+                </div>
+                <div class="status-item">
+                    <h4>Total Riders</h4>
+                    <div class="value" id="riderCount">0</div>
+                </div>
+                <div class="status-item">
+                    <h4>Active Rides</h4>
+                    <div class="value" id="rideCount">0</div>
+                </div>
+            </div>
+        </div>
+
         <div class="legend">
-            <h3>Legend:</h3>
-            <div class="legend-item">
-                <span class="legend-color" style="background-color: #4CAF50;"></span>
-                Driver
+            <h2>🎨 Legend</h2>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(45deg, #4CAF50, #45a049);"></div>
+                    <span>Driver</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(45deg, #2196F3, #1976D2);"></div>
+                    <span>Rider</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(45deg, #FF9800, #F57C00);"></div>
+                    <span>Pickup Location</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(45deg, #9C27B0, #7B1FA2);"></div>
+                    <span>Dropoff Location</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(45deg, #FFC107, #FFA000);"></div>
+                    <span>Pending Acceptance</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(45deg, #00BCD4, #0097A7);"></div>
+                    <span>In Transit</span>
+                </div>
             </div>
-            <div class="legend-item">
-                <span class="legend-color" style="background-color: #2196F3;"></span>
-                Rider
-            </div>
-            <div class="legend-item">
-                <span class="legend-color" style="background-color: #FF9800;"></span>
-                Pickup
-            </div>
-            <div class="legend-item">
-                <span class="legend-color" style="background-color: #9C27B0;"></span>
-                Dropoff
-            </div>
-            <div class="legend-item">
-                <span class="legend-color" style="background-color: #FFC107;"></span>
-                Pending Acceptance
-            </div>
-        </div>
-
-        <div class="grid-container">
-            <div class="grid" id="grid"></div>
-        </div>
-
-        <div class="controls">
-            <h3>Controls</h3>
-            
-            <div class="control-group">
-                <label>Add Driver:</label>
-                <input type="number" id="driverX" placeholder="X" min="0" max="99" value="50">
-                <input type="number" id="driverY" placeholder="Y" min="0" max="99" value="50">
-                <button onclick="addDriver()">Add Driver</button>
-            </div>
-
-            <div class="control-group">
-                <label>Add Rider:</label>
-                <input type="number" id="pickupX" placeholder="Pickup X" min="0" max="99" value="20">
-                <input type="number" id="pickupY" placeholder="Pickup Y" min="0" max="99" value="20">
-                <input type="number" id="dropoffX" placeholder="Dropoff X" min="0" max="99" value="80">
-                <input type="number" id="dropoffY" placeholder="Dropoff Y" min="0" max="99" value="80">
-                <button onclick="addRider()">Add Rider</button>
-            </div>
-
-            <div class="control-group">
-                <label>Request Ride:</label>
-                <select id="riderSelect">
-                    <option value="">Select a rider...</option>
-                </select>
-                <button onclick="requestRide()">Request Ride</button>
-            </div>
-
-            <div class="control-group">
-                <label>Driver Actions:</label>
-                <select id="driverSelect">
-                    <option value="">Select a driver...</option>
-                </select>
-                <select id="rideSelect">
-                    <option value="">Select a ride...</option>
-                </select>
-                <button onclick="acceptRide()">Accept Ride</button>
-                <button onclick="rejectRide()">Reject Ride</button>
-            </div>
-
-            <div class="control-group">
-                <button onclick="nextTick()">Next Tick</button>
-                <button onclick="refreshState()">Refresh State</button>
-            </div>
-        </div>
-
-        <div class="status">
-            <h3>System Status</h3>
-            <p><strong>Current Tick:</strong> <span id="currentTick">0</span></p>
-            <p><strong>Drivers:</strong> <span id="driverCount">0</span></p>
-            <p><strong>Riders:</strong> <span id="riderCount">0</span></p>
-            <p><strong>Active Rides:</strong> <span id="rideCount">0</span></p>
         </div>
 
         <div class="ride-list">
-            <h3>Ride Requests</h3>
+            <h2>🚖 Ride Requests</h2>
             <div id="rideList"></div>
         </div>
     </div>
@@ -231,11 +549,12 @@
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
             
-            for (let y = 0; y < 100; y++) {
-                for (let x = 0; x < 100; x++) {
+            for (let y = 0; y < 20; y++) {
+                for (let x = 0; x < 20; x++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
                     cell.id = `cell-${x}-${y}`;
+                    cell.title = `Position (${x}, ${y})`;
                     grid.appendChild(cell);
                 }
             }
@@ -254,6 +573,7 @@
                 const cell = document.getElementById(`cell-${driver.location.x}-${driver.location.y}`);
                 if (cell) {
                     cell.classList.add('driver');
+                    cell.title = `Driver ${driver.id.slice(0, 8)} at (${driver.location.x}, ${driver.location.y}) - Status: ${driver.status}`;
                 }
             });
 
@@ -262,6 +582,7 @@
                 const cell = document.getElementById(`cell-${rider.pickup_location.x}-${rider.pickup_location.y}`);
                 if (cell) {
                     cell.classList.add('rider');
+                    cell.title = `Rider ${rider.id.slice(0, 8)} at (${rider.pickup_location.x}, ${rider.pickup_location.y}) - Status: ${rider.status}`;
                 }
             });
 
@@ -271,11 +592,13 @@
                     const pickupCell = document.getElementById(`cell-${ride.pickup_location.x}-${ride.pickup_location.y}`);
                     if (pickupCell) {
                         pickupCell.classList.add('pickup');
+                        pickupCell.title = `Pickup for ride ${ride.id.slice(0, 8)}`;
                     }
                     
                     const dropoffCell = document.getElementById(`cell-${ride.dropoff_location.x}-${ride.dropoff_location.y}`);
                     if (dropoffCell) {
                         dropoffCell.classList.add('dropoff');
+                        dropoffCell.title = `Dropoff for ride ${ride.id.slice(0, 8)}`;
                     }
                     
                     // Add pending indicator for rides waiting for driver acceptance
@@ -283,6 +606,19 @@
                         const pickupCell = document.getElementById(`cell-${ride.pickup_location.x}-${ride.pickup_location.y}`);
                         if (pickupCell) {
                             pickupCell.classList.add('pending');
+                            pickupCell.title = `Pending ride ${ride.id.slice(0, 8)} waiting for driver acceptance`;
+                        }
+                    }
+
+                    // Add in-transit indicator for accepted rides
+                    if (ride.status === 'accepted') {
+                        const assignedDriver = state.drivers.find(d => d.id === ride.assigned_driver_id);
+                        if (assignedDriver) {
+                            const driverCell = document.getElementById(`cell-${assignedDriver.location.x}-${assignedDriver.location.y}`);
+                            if (driverCell) {
+                                driverCell.classList.add('in-transit');
+                                driverCell.title = `Driver ${assignedDriver.id.slice(0, 8)} in transit for ride ${ride.id.slice(0, 8)}`;
+                            }
                         }
                     }
                 }
@@ -346,15 +682,29 @@
             const rideList = document.getElementById('rideList');
             rideList.innerHTML = '';
             
+            if (state.rides.length === 0) {
+                rideList.innerHTML = '<p style="text-align: center; color: #666; font-style: italic;">No ride requests yet</p>';
+                return;
+            }
+            
             state.rides.forEach(ride => {
                 const rideItem = document.createElement('div');
                 rideItem.className = 'ride-item';
+                
+                const statusClass = `status-${ride.status}`;
+                const statusText = ride.status.charAt(0).toUpperCase() + ride.status.slice(1);
+                
                 rideItem.innerHTML = `
-                    <strong>Ride ${ride.id.slice(0, 8)}</strong><br>
-                    Status: ${ride.status}<br>
-                    Pickup: (${ride.pickup_location.x}, ${ride.pickup_location.y})<br>
-                    Dropoff: (${ride.dropoff_location.x}, ${ride.dropoff_location.y})<br>
-                    ${ride.assigned_driver_id ? `Driver: ${ride.assigned_driver_id.slice(0, 8)}` : 'No driver assigned'}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong>Ride ${ride.id.slice(0, 8)}</strong>
+                        <span class="ride-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span class="coordinates">Pickup: (${ride.pickup_location.x}, ${ride.pickup_location.y})</span>
+                        <span style="margin: 0 10px;">→</span>
+                        <span class="coordinates">Dropoff: (${ride.dropoff_location.x}, ${ride.dropoff_location.y})</span>
+                    </div>
+                    ${ride.assigned_driver_id ? `<div style="font-size: 0.9rem; color: #666;">Driver: ${ride.assigned_driver_id.slice(0, 8)}</div>` : '<div style="font-size: 0.9rem; color: #666;">No driver assigned</div>'}
                 `;
                 rideList.appendChild(rideItem);
             });
@@ -379,6 +729,11 @@
         async function addDriver() {
             const x = parseInt(document.getElementById('driverX').value);
             const y = parseInt(document.getElementById('driverY').value);
+            
+            if (x < 0 || x >= 20 || y < 0 || y >= 20) {
+                alert('Coordinates must be between 0 and 19');
+                return;
+            }
             
             try {
                 const response = await fetch('/drivers', {
@@ -408,6 +763,17 @@
             const dropoffX = parseInt(document.getElementById('dropoffX').value);
             const dropoffY = parseInt(document.getElementById('dropoffY').value);
             
+            if (pickupX < 0 || pickupX >= 20 || pickupY < 0 || pickupY >= 20 ||
+                dropoffX < 0 || dropoffX >= 20 || dropoffY < 0 || dropoffY >= 20) {
+                alert('Coordinates must be between 0 and 19');
+                return;
+            }
+            
+            if (pickupX === dropoffX && pickupY === dropoffY) {
+                alert('Pickup and dropoff locations cannot be the same');
+                return;
+            }
+            
             try {
                 const response = await fetch('/riders', {
                     method: 'POST',
@@ -423,11 +789,12 @@
                 if (response.ok) {
                     await fetchState();
                 } else {
-                    alert('Failed to add rider');
+                    const errorText = await response.text();
+                    alert('Failed to add rider: ' + errorText);
                 }
             } catch (error) {
                 console.error('Error adding rider:', error);
-                alert('Error adding rider');
+                alert('Error adding rider: ' + error.message);
             }
         }
 
@@ -450,11 +817,12 @@
                 if (response.ok) {
                     await fetchState();
                 } else {
-                    alert('Failed to request ride');
+                    const errorText = await response.text();
+                    alert('Failed to request ride: ' + errorText);
                 }
             } catch (error) {
                 console.error('Error requesting ride:', error);
-                alert('Error requesting ride');
+                alert('Error requesting ride: ' + error.message);
             }
         }
 
@@ -467,11 +835,12 @@
                 if (response.ok) {
                     await fetchState();
                 } else {
-                    alert('Failed to advance time');
+                    const errorText = await response.text();
+                    alert('Failed to advance time: ' + errorText);
                 }
             } catch (error) {
                 console.error('Error advancing time:', error);
-                alert('Error advancing time');
+                alert('Error advancing time: ' + error.message);
             }
         }
 

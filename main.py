@@ -560,6 +560,55 @@ async def get_state():
         print(f"[STATE] CRITICAL ERROR: {error_msg}")
         raise HTTPException(status_code=500, detail=error_msg)
 
+@app.get("/system-state")
+async def get_system_state():
+    """Alias for /state endpoint for frontend compatibility"""
+    return await get_state()
+
+@app.get("/stats")
+async def get_stats():
+    """Get system statistics"""
+    try:
+        print(f"[STATS] Fetching system statistics at tick {current_tick}")
+        
+        # Calculate statistics
+        idle_drivers = [d for d in drivers.values() if d.status == DriverStatus.IDLE]
+        busy_drivers = [d for d in drivers.values() if d.status != DriverStatus.IDLE]
+        waiting_riders = [r for r in riders.values() if r.status == RiderStatus.WAITING]
+        assigned_riders = [r for r in riders.values() if r.status == RiderStatus.ASSIGNED]
+        in_transit_riders = [r for r in riders.values() if r.status == RiderStatus.IN_TRANSIT]
+        completed_riders = [r for r in riders.values() if r.status == RiderStatus.COMPLETED]
+        
+        pending_rides = [r for r in ride_requests.values() if r.status == "pending"]
+        accepted_rides = [r for r in ride_requests.values() if r.status == "accepted"]
+        completed_rides = [r for r in ride_requests.values() if r.status == "completed"]
+        rejected_rides = [r for r in ride_requests.values() if r.status == "rejected"]
+        
+        stats = {
+            "tick": current_tick,
+            "total_drivers": len(drivers),
+            "idle_drivers": len(idle_drivers),
+            "busy_drivers": len(busy_drivers),
+            "total_riders": len(riders),
+            "waiting_riders": len(waiting_riders),
+            "assigned_riders": len(assigned_riders),
+            "in_transit_riders": len(in_transit_riders),
+            "completed_riders": len(completed_riders),
+            "total_rides": len(ride_requests),
+            "pending_rides": len(pending_rides),
+            "accepted_rides": len(accepted_rides),
+            "completed_rides": len(completed_rides),
+            "rejected_rides": len(rejected_rides)
+        }
+        
+        print(f"[STATS] SUCCESS: Statistics returned successfully")
+        return stats
+        
+    except Exception as e:
+        error_msg = f"Unexpected error fetching statistics: {str(e)}"
+        print(f"[STATS] CRITICAL ERROR: {error_msg}")
+        raise HTTPException(status_code=500, detail=error_msg)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000) 
