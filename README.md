@@ -1,131 +1,112 @@
 # Ride Dispatch System
 
-A simplified ride-hailing backend system built with FastAPI and a basic frontend UI to visualize and simulate the system.
+A real-time ride dispatch simulation system built with FastAPI and vanilla JavaScript. The system manages drivers, riders, and ride requests with automatic driver assignment based on proximity.
 
-## Features
+## System Overview
 
-- **FastAPI Backend**: Manages city grid, drivers, riders, and ride requests
-- **Dispatch Logic**: Assigns drivers to ride requests based on ETA, fairness, and availability
-- **Grid-based City**: 2D grid (20x20) where drivers and riders exist at (x,y) coordinates
-- **Time-based Simulation**: Manual time advancement through `/tick` endpoint
-- **Simple Frontend**: Browser-based UI to interact with the system
+The application simulates a ride-sharing platform where:
+- Drivers are positioned on a 100x100 grid
+- Riders request rides from pickup to dropoff locations
+- The system automatically assigns the closest available driver
+- Drivers move one step per tick towards pickup/dropoff locations
+- Real-time visualization shows the entire dispatch process
 
-## How to Run
+## Code Structure
 
-1. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Backend (Python/FastAPI)
 
-2. **Run the Server**:
-   ```bash
-   python main.py
-   ```
+**`main.py`**
+- Application entry point
+- FastAPI app configuration
+- Static file serving
 
-3. **Access the Application**:
-   - Open your browser and go to `http://localhost:8000`
-   - The FastAPI documentation is available at `http://localhost:8000/docs`
+**`models.py`**
+- Data models and enums
+- Driver, Rider, RideRequest, and Location classes
+- Status enums for drivers and riders
 
-## How the Dispatching Works
+**`helpers.py`**
+- Business logic functions
+- Distance calculations
+- Driver assignment algorithms
+- Movement logic
 
-### Dispatch Logic Goals
+**`routes.py`**
+- API endpoints
+- CRUD operations for drivers, riders, and rides
+- Time advancement (tick) system
+- State management
 
-The system balances the following objectives:
+### Frontend (HTML/JavaScript)
 
-1. **Low ETA**: Assigns drivers with shortest travel time to pickup location
-2. **Fairness**: Ensures no driver gets all requests; distributes evenly
-3. **Efficiency**: Maximizes fulfilled rides; minimizes idle drivers
-4. **Fallbacks**: Retries with other drivers if the first one rejects
+**`static/index.html`**
+- Complete web interface
+- Real-time grid visualization
+- Interactive controls
+- Ride request management
+- Activity logging system
 
-### Current Implementation
+## Key Features
 
-- **ETA Calculation**: Uses Manhattan distance (`|x1-x2| + |y1-y2|`)
-- **Driver Selection**: Sorts available drivers by distance to pickup location
-- **Movement**: Drivers move 1 unit per tick towards their destination
-- **Simple Fairness**: Currently implements basic closest-driver assignment
+- **Real-time Grid Visualization**: 100x100 grid showing drivers, riders, pickup/dropoff locations
+- **Automatic Driver Assignment**: Closest available driver is assigned to each ride request
+- **Time-based Movement**: Drivers move one step per tick towards destinations
+- **Interactive Controls**: Add drivers/riders, request rides, accept/reject rides
+- **Activity Logging**: Scrollable log of all system events
+- **State Management**: Clear system state and reset functionality
 
-### Algorithm Details
+## Getting Started
 
-```python
-def find_best_driver(pickup_location: Location) -> Optional[str]:
-    # Get all available drivers
-    available_drivers = [d for d in drivers.values() if d.status == DriverStatus.AVAILABLE]
-    
-    if not available_drivers:
-        return None
-    
-    # Sort by ETA (distance to pickup)
-    available_drivers.sort(key=lambda d: calculate_eta(d.location, pickup_location))
-    
-    # Return the closest driver
-    return available_drivers[0].id
+### Prerequisites
+
+- Python 3.7+
+- FastAPI
+- Uvicorn
+
+### Installation
+
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
 ```
 
-## System Entities
+2. Start the application:
+```bash
+python main.py
+```
 
-### Driver
-- Unique ID
-- Current location (x, y)
-- Status: `available`, `on_trip`, or `offline`
+3. Open your browser and navigate to:
+```
+http://localhost:8000
+```
 
-### Rider
-- Unique ID
-- Pickup location (x, y)
-- Dropoff location (x, y)
+## Frontend Interface
 
-### RideRequest
-- Rider ID
-- Pickup and dropoff locations
-- Status: `waiting`, `assigned`, `rejected`, `completed`, or `failed`
-- Assigned driver ID
+The web interface provides a comprehensive view of the ride dispatch system:
+
+- **Grid Visualization**: 100x100 interactive grid showing real-time positions of drivers, riders, pickup/dropoff locations
+- **Legend**: Color-coded indicators for different entities (drivers, riders, pickup, dropoff, pending)
+- **Controls Panel**: Add drivers/riders, request rides, advance time, and manage system state
+- **System Status**: Real-time counters for drivers, riders, and active rides
+- **Ride Management**: List of all ride requests with accept/reject buttons for pending rides
+- **Activity Log**: Scrollable log showing all system events with timestamps and color-coded entries
+
+## Usage
+
+1. **Add Drivers**: Use the "Add Driver" controls to place drivers on the grid
+2. **Add Riders**: Create riders with pickup and dropoff locations
+3. **Request Rides**: Select a rider and click "Request Ride"
+4. **Manage Rides**: Accept or reject pending ride requests
+5. **Advance Time**: Click "Next Tick" to move drivers and update ride status
+6. **Monitor Activity**: View the activity log for system events
 
 ## API Endpoints
 
-- `GET /` - Frontend UI
-- `GET /state` - Get current system state
+- `GET /` - Main application interface
 - `POST /drivers` - Create a new driver
-- `GET /drivers` - Get all drivers
-- `DELETE /drivers/{driver_id}` - Delete a driver
 - `POST /riders` - Create a new rider
-- `GET /riders` - Get all riders
-- `DELETE /riders/{rider_id}` - Delete a rider
-- `POST /rides` - Request a ride
-- `GET /rides` - Get all ride requests
+- `POST /rides` - Request a new ride
+- `POST /rides/{ride_id}/respond` - Accept/reject a ride
 - `POST /tick` - Advance time by one tick
-
-## Frontend Features
-
-- **Grid Visualization**: 20x20 grid showing drivers, riders, and active rides
-- **Add/Remove Entities**: Add drivers and riders at specific coordinates
-- **Request Rides**: Select a rider and request a ride
-- **Time Control**: Advance simulation time with "Next Tick" button
-- **Real-time Updates**: See current system state and ride status
-
-## Assumptions and Simplifications
-
-1. **Grid Size**: Using 20x20 grid for better visualization (instead of 100x100)
-2. **Movement**: Drivers move 1 unit per tick in both x and y directions
-3. **ETA Calculation**: Manhattan distance for simplicity
-4. **Driver Rejection**: Not implemented in this basic version
-5. **Persistence**: In-memory storage only
-6. **Real-time**: No WebSocket connections; manual refresh required
-7. **Authentication**: No authentication required
-8. **Driver Speed**: Fixed at 1 unit per tick
-
-## Future Enhancements
-
-- Implement driver rejection mechanism
-- Add more sophisticated fairness algorithms
-- Implement ride cancellation
-- Add driver earnings tracking
-- Implement multiple driver types with different speeds
-- Add traffic simulation
-- Implement persistent storage
-- Add real-time WebSocket updates
-
-## Evaluation Criteria
-
-- ✅ **Correctness**: Ride requests are assigned and completed correctly
-- 🧠 **Dispatch Logic**: Logic is well-thought-out and documented
-- 🧹 **Code Quality**: Code is clean, modular, and understandable
-- 🔁 **Extensibility**: System is designed to scale and support future features 
+- `GET /state` - Get current system state
+- `POST /clear-state` - Reset the entire system 
