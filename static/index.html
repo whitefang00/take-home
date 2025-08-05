@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ride Dispatch System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .grid-container {
+            display: inline-block;
+            border: 2px solid #333;
+            background-color: white;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(100, 4px);
+            grid-template-rows: repeat(100, 4px);
+            gap: 1px;
+            background-color: #ccc;
+        }
+        .cell {
+            width: 4px;
+            height: 4px;
+            background-color: white;
+            border: 1px solid #eee;
+            position: relative;
+        }
+        .driver {
+            background-color: #4CAF50;
+            border-radius: 50%;
+        }
+        .rider {
+            background-color: #2196F3;
+            border-radius: 50%;
+        }
+        .pickup {
+            background-color: #FF9800;
+        }
+        .dropoff {
+            background-color: #9C27B0;
+        }
+        .pending {
+            background-color: #FFC107;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .control-group {
+            margin: 10px 0;
+        }
+        label {
+            display: inline-block;
+            width: 100px;
+            font-weight: bold;
+        }
+        input {
+            padding: 5px;
+            margin: 0 10px;
+            width: 60px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .ride-list {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .ride-item {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .legend {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .legend-item {
+            display: inline-block;
+            margin: 0 20px;
+        }
+        .legend-color {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ride Dispatch System</h1>
+        
+        <div class="legend">
+            <h3>Legend:</h3>
+            <div class="legend-item">
+                <span class="legend-color" style="background-color: #4CAF50;"></span>
+                Driver
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background-color: #2196F3;"></span>
+                Rider
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background-color: #FF9800;"></span>
+                Pickup
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background-color: #9C27B0;"></span>
+                Dropoff
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background-color: #FFC107;"></span>
+                Pending Acceptance
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <div class="grid" id="grid"></div>
+        </div>
+
+        <div class="controls">
+            <h3>Controls</h3>
+            
+            <div class="control-group">
+                <label>Add Driver:</label>
+                <input type="number" id="driverX" placeholder="X" min="0" max="99" value="50">
+                <input type="number" id="driverY" placeholder="Y" min="0" max="99" value="50">
+                <button onclick="addDriver()">Add Driver</button>
+            </div>
+
+            <div class="control-group">
+                <label>Add Rider:</label>
+                <input type="number" id="pickupX" placeholder="Pickup X" min="0" max="99" value="20">
+                <input type="number" id="pickupY" placeholder="Pickup Y" min="0" max="99" value="20">
+                <input type="number" id="dropoffX" placeholder="Dropoff X" min="0" max="99" value="80">
+                <input type="number" id="dropoffY" placeholder="Dropoff Y" min="0" max="99" value="80">
+                <button onclick="addRider()">Add Rider</button>
+            </div>
+
+            <div class="control-group">
+                <label>Request Ride:</label>
+                <select id="riderSelect">
+                    <option value="">Select a rider...</option>
+                </select>
+                <button onclick="requestRide()">Request Ride</button>
+            </div>
+
+            <div class="control-group">
+                <label>Driver Actions:</label>
+                <select id="driverSelect">
+                    <option value="">Select a driver...</option>
+                </select>
+                <select id="rideSelect">
+                    <option value="">Select a ride...</option>
+                </select>
+                <button onclick="acceptRide()">Accept Ride</button>
+                <button onclick="rejectRide()">Reject Ride</button>
+            </div>
+
+            <div class="control-group">
+                <button onclick="nextTick()">Next Tick</button>
+                <button onclick="refreshState()">Refresh State</button>
+            </div>
+        </div>
+
+        <div class="status">
+            <h3>System Status</h3>
+            <p><strong>Current Tick:</strong> <span id="currentTick">0</span></p>
+            <p><strong>Drivers:</strong> <span id="driverCount">0</span></p>
+            <p><strong>Riders:</strong> <span id="riderCount">0</span></p>
+            <p><strong>Active Rides:</strong> <span id="rideCount">0</span></p>
+        </div>
+
+        <div class="ride-list">
+            <h3>Ride Requests</h3>
+            <div id="rideList"></div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            tick: 0,
+            drivers: [],
+            riders: [],
+            rides: [],
+            grid_size: 20
+        };
+
+        // Initialize grid
+        function initializeGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            
+            for (let y = 0; y < 100; y++) {
+                for (let x = 0; x < 100; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${x}-${y}`;
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        // Update grid display
+        function updateGrid() {
+            // Clear grid
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.className = 'cell';
+            });
+
+            // Draw drivers
+            state.drivers.forEach(driver => {
+                const cell = document.getElementById(`cell-${driver.location.x}-${driver.location.y}`);
+                if (cell) {
+                    cell.classList.add('driver');
+                }
+            });
+
+            // Draw riders
+            state.riders.forEach(rider => {
+                const cell = document.getElementById(`cell-${rider.pickup_location.x}-${rider.pickup_location.y}`);
+                if (cell) {
+                    cell.classList.add('rider');
+                }
+            });
+
+            // Draw active rides
+            state.rides.forEach(ride => {
+                if (ride.status === 'accepted' || ride.status === 'pending') {
+                    const pickupCell = document.getElementById(`cell-${ride.pickup_location.x}-${ride.pickup_location.y}`);
+                    if (pickupCell) {
+                        pickupCell.classList.add('pickup');
+                    }
+                    
+                    const dropoffCell = document.getElementById(`cell-${ride.dropoff_location.x}-${ride.dropoff_location.y}`);
+                    if (dropoffCell) {
+                        dropoffCell.classList.add('dropoff');
+                    }
+                    
+                    // Add pending indicator for rides waiting for driver acceptance
+                    if (ride.status === 'pending') {
+                        const pickupCell = document.getElementById(`cell-${ride.pickup_location.x}-${ride.pickup_location.y}`);
+                        if (pickupCell) {
+                            pickupCell.classList.add('pending');
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update status display
+        function updateStatus() {
+            document.getElementById('currentTick').textContent = state.tick;
+            document.getElementById('driverCount').textContent = state.drivers.length;
+            document.getElementById('riderCount').textContent = state.riders.length;
+            document.getElementById('rideCount').textContent = state.rides.filter(r => r.status === 'accepted' || r.status === 'pending').length;
+        }
+
+        // Update rider select dropdown
+        function updateRiderSelect() {
+            const select = document.getElementById('riderSelect');
+            select.innerHTML = '<option value="">Select a rider...</option>';
+            
+            state.riders.forEach(rider => {
+                const option = document.createElement('option');
+                option.value = rider.id;
+                option.textContent = `Rider ${rider.id.slice(0, 8)} (${rider.pickup_location.x},${rider.pickup_location.y}) → (${rider.dropoff_location.x},${rider.dropoff_location.y})`;
+                select.appendChild(option);
+            });
+        }
+
+        // Update driver select dropdown
+        function updateDriverSelect() {
+            const select = document.getElementById('driverSelect');
+            select.innerHTML = '<option value="">Select a driver...</option>';
+            
+            state.drivers.forEach(driver => {
+                const option = document.createElement('option');
+                option.value = driver.id;
+                option.textContent = `Driver ${driver.id.slice(0, 8)} (${driver.location.x},${driver.location.y}) - ${driver.status}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Update ride select dropdown for driver actions
+        function updateRideSelect() {
+            const select = document.getElementById('rideSelect');
+            const selectedDriverId = document.getElementById('driverSelect').value;
+            select.innerHTML = '<option value="">Select a ride...</option>';
+            
+            if (selectedDriverId) {
+                state.rides.forEach(ride => {
+                    if (ride.assigned_driver_id === selectedDriverId && ride.status === 'pending') {
+                        const option = document.createElement('option');
+                        option.value = ride.id;
+                        option.textContent = `Ride ${ride.id.slice(0, 8)} (${ride.pickup_location.x},${ride.pickup_location.y}) → (${ride.dropoff_location.x},${ride.dropoff_location.y})`;
+                        select.appendChild(option);
+                    }
+                });
+            }
+        }
+
+        // Update ride list
+        function updateRideList() {
+            const rideList = document.getElementById('rideList');
+            rideList.innerHTML = '';
+            
+            state.rides.forEach(ride => {
+                const rideItem = document.createElement('div');
+                rideItem.className = 'ride-item';
+                rideItem.innerHTML = `
+                    <strong>Ride ${ride.id.slice(0, 8)}</strong><br>
+                    Status: ${ride.status}<br>
+                    Pickup: (${ride.pickup_location.x}, ${ride.pickup_location.y})<br>
+                    Dropoff: (${ride.dropoff_location.x}, ${ride.dropoff_location.y})<br>
+                    ${ride.assigned_driver_id ? `Driver: ${ride.assigned_driver_id.slice(0, 8)}` : 'No driver assigned'}
+                `;
+                rideList.appendChild(rideItem);
+            });
+        }
+
+        // API functions
+        async function fetchState() {
+            try {
+                const response = await fetch('/state');
+                state = await response.json();
+                updateGrid();
+                updateStatus();
+                updateRiderSelect();
+                updateDriverSelect();
+                updateRideSelect();
+                updateRideList();
+            } catch (error) {
+                console.error('Error fetching state:', error);
+            }
+        }
+
+        async function addDriver() {
+            const x = parseInt(document.getElementById('driverX').value);
+            const y = parseInt(document.getElementById('driverY').value);
+            
+            try {
+                const response = await fetch('/drivers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ x, y })
+                });
+                
+                if (response.ok) {
+                    await fetchState();
+                } else {
+                    const errorText = await response.text();
+                    console.error('Server error:', errorText);
+                    alert('Failed to add driver: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error adding driver:', error);
+                alert('Error adding driver: ' + error.message);
+            }
+        }
+
+        async function addRider() {
+            const pickupX = parseInt(document.getElementById('pickupX').value);
+            const pickupY = parseInt(document.getElementById('pickupY').value);
+            const dropoffX = parseInt(document.getElementById('dropoffX').value);
+            const dropoffY = parseInt(document.getElementById('dropoffY').value);
+            
+            try {
+                const response = await fetch('/riders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        pickup_location: { x: pickupX, y: pickupY },
+                        dropoff_location: { x: dropoffX, y: dropoffY }
+                    })
+                });
+                
+                if (response.ok) {
+                    await fetchState();
+                } else {
+                    alert('Failed to add rider');
+                }
+            } catch (error) {
+                console.error('Error adding rider:', error);
+                alert('Error adding rider');
+            }
+        }
+
+        async function requestRide() {
+            const riderId = document.getElementById('riderSelect').value;
+            if (!riderId) {
+                alert('Please select a rider');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/rides', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ rider_id: riderId })
+                });
+                
+                if (response.ok) {
+                    await fetchState();
+                } else {
+                    alert('Failed to request ride');
+                }
+            } catch (error) {
+                console.error('Error requesting ride:', error);
+                alert('Error requesting ride');
+            }
+        }
+
+        async function nextTick() {
+            try {
+                const response = await fetch('/tick', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    await fetchState();
+                } else {
+                    alert('Failed to advance time');
+                }
+            } catch (error) {
+                console.error('Error advancing time:', error);
+                alert('Error advancing time');
+            }
+        }
+
+        async function acceptRide() {
+            const rideId = document.getElementById('rideSelect').value;
+            if (!rideId) {
+                alert('Please select a ride to accept');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/rides/${rideId}/respond`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action: 'accept', ride_id: rideId })
+                });
+                
+                if (response.ok) {
+                    await fetchState();
+                    alert('Ride accepted successfully!');
+                } else {
+                    const errorText = await response.text();
+                    alert('Failed to accept ride: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error accepting ride:', error);
+                alert('Error accepting ride: ' + error.message);
+            }
+        }
+
+        async function rejectRide() {
+            const rideId = document.getElementById('rideSelect').value;
+            if (!rideId) {
+                alert('Please select a ride to reject');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/rides/${rideId}/respond`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action: 'reject', ride_id: rideId })
+                });
+                
+                if (response.ok) {
+                    await fetchState();
+                    alert('Ride rejected successfully!');
+                } else {
+                    const errorText = await response.text();
+                    alert('Failed to reject ride: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error rejecting ride:', error);
+                alert('Error rejecting ride: ' + error.message);
+            }
+        }
+
+        // Update ride select when driver selection changes
+        document.getElementById('driverSelect').addEventListener('change', updateRideSelect);
+
+        async function refreshState() {
+            await fetchState();
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGrid();
+            fetchState();
+        });
+    </script>
+</body>
+</html> 
