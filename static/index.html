@@ -186,20 +186,9 @@
             </div>
 
             <div class="control-group">
-                <label>Driver Actions:</label>
-                <select id="driverSelect">
-                    <option value="">Select a driver...</option>
-                </select>
-                <select id="rideSelect">
-                    <option value="">Select a ride...</option>
-                </select>
-                <button onclick="acceptRide()">Accept Ride</button>
-                <button onclick="rejectRide()">Reject Ride</button>
-            </div>
-
-            <div class="control-group">
                 <button onclick="nextTick()">Next Tick</button>
                 <button onclick="refreshState()">Refresh State</button>
+                <button onclick="clearState()" style="background-color: #f44336;">Clear All State</button>
             </div>
         </div>
 
@@ -310,37 +299,6 @@
             });
         }
 
-        // Update driver select dropdown
-        function updateDriverSelect() {
-            const select = document.getElementById('driverSelect');
-            select.innerHTML = '<option value="">Select a driver...</option>';
-            
-            state.drivers.forEach(driver => {
-                const option = document.createElement('option');
-                option.value = driver.id;
-                option.textContent = `Driver ${driver.id.slice(0, 8)} (${driver.location.x},${driver.location.y}) - ${driver.status}`;
-                select.appendChild(option);
-            });
-        }
-
-        // Update ride select dropdown for driver actions
-        function updateRideSelect() {
-            const select = document.getElementById('rideSelect');
-            const selectedDriverId = document.getElementById('driverSelect').value;
-            select.innerHTML = '<option value="">Select a ride...</option>';
-            
-            if (selectedDriverId) {
-                state.rides.forEach(ride => {
-                    if (ride.assigned_driver_id === selectedDriverId && ride.status === 'pending') {
-                        const option = document.createElement('option');
-                        option.value = ride.id;
-                        option.textContent = `Ride ${ride.id.slice(0, 8)} (${ride.pickup_location.x},${ride.pickup_location.y}) → (${ride.dropoff_location.x},${ride.dropoff_location.y})`;
-                        select.appendChild(option);
-                    }
-                });
-            }
-        }
-
         // Update ride list
         function updateRideList() {
             const rideList = document.getElementById('rideList');
@@ -349,12 +307,28 @@
             state.rides.forEach(ride => {
                 const rideItem = document.createElement('div');
                 rideItem.className = 'ride-item';
+                
+                // Get driver info if assigned
+                let driverInfo = 'No driver assigned';
+                if (ride.assigned_driver_id) {
+                    const driver = state.drivers.find(d => d.id === ride.assigned_driver_id);
+                    if (driver) {
+                        driverInfo = `Driver: ${driver.id.slice(0, 8)} (${driver.location.x},${driver.location.y}) - ${driver.status}`;
+                    } else {
+                        driverInfo = `Driver: ${ride.assigned_driver_id.slice(0, 8)}`;
+                    }
+                }
+                
                 rideItem.innerHTML = `
                     <strong>Ride ${ride.id.slice(0, 8)}</strong><br>
                     Status: ${ride.status}<br>
                     Pickup: (${ride.pickup_location.x}, ${ride.pickup_location.y})<br>
                     Dropoff: (${ride.dropoff_location.x}, ${ride.dropoff_location.y})<br>
-                    ${ride.assigned_driver_id ? `Driver: ${ride.assigned_driver_id.slice(0, 8)}` : 'No driver assigned'}
+                    ${driverInfo}
+                    ${ride.status === 'pending' ? `
+                        <br><button onclick="acceptRide('${ride.id}')" style="background-color: #4CAF50;">Accept Ride</button>
+                        <button onclick="rejectRide('${ride.id}')" style="background-color: #f44336;">Reject Ride</button>
+                    ` : ''}
                 `;
                 rideList.appendChild(rideItem);
             });
@@ -368,8 +342,6 @@
                 updateGrid();
                 updateStatus();
                 updateRiderSelect();
-                updateDriverSelect();
-                updateRideSelect();
                 updateRideList();
             } catch (error) {
                 console.error('Error fetching state:', error);
@@ -475,13 +447,7 @@
             }
         }
 
-        async function acceptRide() {
-            const rideId = document.getElementById('rideSelect').value;
-            if (!rideId) {
-                alert('Please select a ride to accept');
-                return;
-            }
-            
+        async function acceptRide(rideId) {
             try {
                 const response = await fetch(`/rides/${rideId}/respond`, {
                     method: 'POST',
@@ -504,13 +470,7 @@
             }
         }
 
-        async function rejectRide() {
-            const rideId = document.getElementById('rideSelect').value;
-            if (!rideId) {
-                alert('Please select a ride to reject');
-                return;
-            }
-            
+        async function rejectRide(rideId) {
             try {
                 const response = await fetch(`/rides/${rideId}/respond`, {
                     method: 'POST',
@@ -533,11 +493,35 @@
             }
         }
 
-        // Update ride select when driver selection changes
-        document.getElementById('driverSelect').addEventListener('change', updateRideSelect);
-
         async function refreshState() {
             await fetchState();
+        }
+
+        async function clearState() {
+            if (!confirm('Are you sure you want to clear all system state? This will remove all drivers, riders, and ride requests.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/clear-state', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    await fetchState();
+                    alert('System state cleared successfully!');
+                } else {
+                    const errorText = await response.text();
+                    alert('Failed to clear state: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error clearing state:', error);
+                alert('Error clearing state: ' + error.message);
+            }
         }
 
         // Initialize page

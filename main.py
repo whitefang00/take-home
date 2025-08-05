@@ -560,6 +560,45 @@ async def get_state():
         print(f"[STATE] CRITICAL ERROR: {error_msg}")
         raise HTTPException(status_code=500, detail=error_msg)
 
+@app.post("/clear-state")
+async def clear_state():
+    """Clear all system state - remove all drivers, riders, and ride requests"""
+    global drivers, riders, ride_requests, current_tick
+    
+    try:
+        print(f"[CLEAR_STATE] Starting system state clear")
+        print(f"[CLEAR_STATE] Current state before clear:")
+        print(f"[CLEAR_STATE]   - Drivers: {len(drivers)}")
+        print(f"[CLEAR_STATE]   - Riders: {len(riders)}")
+        print(f"[CLEAR_STATE]   - Rides: {len(ride_requests)}")
+        print(f"[CLEAR_STATE]   - Current tick: {current_tick}")
+        
+        # Clear all data structures
+        drivers.clear()
+        riders.clear()
+        ride_requests.clear()
+        current_tick = 0
+        
+        print(f"[CLEAR_STATE] SUCCESS: All system state cleared")
+        print(f"[CLEAR_STATE] New state:")
+        print(f"[CLEAR_STATE]   - Drivers: {len(drivers)}")
+        print(f"[CLEAR_STATE]   - Riders: {len(riders)}")
+        print(f"[CLEAR_STATE]   - Rides: {len(ride_requests)}")
+        print(f"[CLEAR_STATE]   - Current tick: {current_tick}")
+        
+        return {
+            "message": "System state cleared successfully",
+            "tick": current_tick,
+            "drivers_cleared": 0,
+            "riders_cleared": 0,
+            "rides_cleared": 0
+        }
+        
+    except Exception as e:
+        error_msg = f"Unexpected error clearing state: {str(e)}"
+        print(f"[CLEAR_STATE] CRITICAL ERROR: {error_msg}")
+        raise HTTPException(status_code=500, detail=error_msg)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000) 
